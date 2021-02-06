@@ -9,7 +9,9 @@ import PauseRoundedIcon from '@material-ui/icons/PauseRounded';
 class VideoPlayer extends Component {
 
     state={
-        playing:false
+        playing:false,
+        currentTime:0,
+        timestamp:'00:00'
     };
 
     playvideo = () => {
@@ -28,23 +30,53 @@ class VideoPlayer extends Component {
         this.refs.video.currentTime = 0 ;
     }
 
+    updateProgress = () => {
+        let updatedCurrentTime =  (this.refs.video.currentTime / this.refs.video.duration )*100;
+        this.setState({currentTime:updatedCurrentTime});
+
+        //getting the mins for the timestamp
+        let mins = Math.floor(this.refs.video.currentTime / 60);
+        if(mins<10){
+            mins = '0'+String(mins);
+        }
+
+        //getting the seconds for the timestamps
+        let seconds = Math.floor(this.refs.video.currentTime % 60);
+        if(seconds<10){
+            seconds = '0'+String(seconds);
+        }
+        let updatedTimestamp = mins+':'+seconds;
+        this.setState({timestamp:updatedTimestamp});
+    }
+
+    setVideoProgress = () => {
+        this.refs.video.currentTime = (+this.refs.progress.value * this.refs.video.duration)/100;
+    }
+
     render() {
 
         let button = null;
         if(this.state.playing) {
             button = <PauseRoundedIcon
-            style={{ color: 'yellow' }}/>
+            style={{ color: 'white' }}/>
         }
         else {
             button = <PlayArrowRoundedIcon 
             style={{ color: 'green' }}/>
         }
+// https://firebasestorage.googleapis.com/v0/b/tushar-video-player.appspot.com/o/video.mp4?alt=media&token=ac8b3c35-009a-477e-8420-d198c467cd68
 
+//https://drive.google.com/uc?export=download&id=1LHbNM7n77t2mk5f94fjpdMh_H5pwHe_n
         return (
             <div className="body">
                 <h1 className="heading">Try playing this video</h1>
-                <video ref="video" className="screen" poster={poster}>
-                    <source src="https://drive.google.com/uc?export=download&id=1LHbNM7n77t2mk5f94fjpdMh_H5pwHe_n" type='video/mp4'/>  
+                <video 
+                ref="video" 
+                onTimeUpdate={this.updateProgress}
+                onClick={ this.state.playing == false ? this.playvideo : this.pausevideo }
+                className="screen" 
+                poster={poster}>
+                    <source src="https://firebasestorage.googleapis.com/v0/b/tushar-video-player.appspot.com/o/video.mp4?alt=media&token=ac8b3c35-009a-477e-8420-d198c467cd68" type='video/mp4'/>  
                     <p>browser doesnt support videos</p>
                 </video>
                 <div className="controls">
@@ -64,12 +96,14 @@ class VideoPlayer extends Component {
                     <input 
                     type="range" 
                     className="progress"  
+                    ref="progress"
                     min="0" 
                     max="100" 
                     step="0.1" 
-                    value="0">
+                    onChange={this.setVideoProgress}
+                    value={this.state.currentTime}>
                     </input>
-                    <span className="timestamp">00:00</span>
+                    <span className="timestamp">{this.state.timestamp}</span>
                 </div>
             </div>
         );
